@@ -11,6 +11,8 @@ export interface WasmPackPluginOptions {
     watchDirectories?: string[]
     /** Controls plugin output verbosity. Defaults to 'info'. */
     pluginLogLevel?: 'info' | 'error'
+    /** Environmental variables that will be passed on to cargo in addition to `process.env` */
+    env?: NodeJS.ProcessEnv
 }
 
 export default class WasmPackPlugin {

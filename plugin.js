@@ -53,12 +53,13 @@ class WasmPackPlugin {
             path.resolve(this.crateDirectory, 'src')
         )
         this.watchFiles = [path.resolve(this.crateDirectory, 'Cargo.toml')]
+        this.env = options.env || {}
 
         if (options.pluginLogLevel && options.pluginLogLevel !== 'info') {
             // The default value for pluginLogLevel is 'info'. If specified and it's
             // not 'info', don't log informational messages. If unspecified or 'info',
             // log as per usual.
-            info = () => {}
+            info = () => { }
         }
 
         this.wp = new Watchpack()
@@ -123,7 +124,7 @@ class WasmPackPlugin {
 
     _makeEmpty() {
         try {
-            fs.mkdirSync(this.outDir, {recursive: true})
+            fs.mkdirSync(this.outDir, { recursive: true })
         } catch (e) {
             if (e.code !== 'EEXIST') {
                 throw e
@@ -145,14 +146,14 @@ class WasmPackPlugin {
         info('ℹ️  Installing wasm-pack \n')
 
         if (commandExistsSync('npm')) {
-            return runProcess('npm', ['install', '-g', 'wasm-pack'], {stdio: ['ignore', 'inherit', 'inherit']}).catch(e => {
+            return runProcess('npm', ['install', '-g', 'wasm-pack'], { stdio: ['ignore', 'inherit', 'inherit'] }).catch(e => {
                 error(
                     '⚠️ could not install wasm-pack globally when using npm, you must have permission to do this'
                 )
                 throw e
             })
         } else if (commandExistsSync('yarn')) {
-            return runProcess('yarn', ['global', 'add', 'wasm-pack'], {stdio: ['ignore', 'inherit', 'inherit']}).catch(e => {
+            return runProcess('yarn', ['global', 'add', 'wasm-pack'], { stdio: ['ignore', 'inherit', 'inherit'] }).catch(e => {
                 error(
                     '⚠️ could not install wasm-pack globally when using yarn, you must have permission to do this'
                 )
@@ -168,8 +169,7 @@ class WasmPackPlugin {
 
     _compile(watching) {
         info(
-            `ℹ️  Compiling your crate in ${
-                this.isDebug ? 'development' : 'release'
+            `ℹ️  Compiling your crate in ${this.isDebug ? 'development' : 'release'
             } mode...\n`
         )
 
@@ -188,6 +188,7 @@ class WasmPackPlugin {
                     cwd: this.crateDirectory,
                     args: this.args,
                     extraArgs: this.extraArgs,
+                    env: this.env
                 })
             })
             .then((detail) => {
@@ -213,7 +214,7 @@ class WasmPackPlugin {
     }
 }
 
-function spawnWasmPack({ outDir, outName, isDebug, cwd, args, extraArgs }) {
+function spawnWasmPack({ outDir, outName, isDebug, cwd, args, extraArgs, env }) {
     const bin = findWasmPack()
 
     const allArgs = [
@@ -230,6 +231,7 @@ function spawnWasmPack({ outDir, outName, isDebug, cwd, args, extraArgs }) {
     const options = {
         cwd,
         stdio: 'inherit',
+        env: { ...process.env, ...env }
     }
 
     return runProcess(bin, allArgs, options)
